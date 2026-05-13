@@ -13,9 +13,13 @@ export default function Home() {
       </p>
 
       <div className="flex gap-4 mt-8">
-        <button className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-bold">
-          Join Discord
-        </button>
+        <a
+  href="https://discord.gg/N9cwqtP8Rg"
+  target="_blank"
+  className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-bold"
+>
+  Join Discord
+</a>
 
         <button className="border-4 border-yellow-400 px-6 py-3 rounded-xl font-bold">
           Play Alpha
