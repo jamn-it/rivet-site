@@ -94,11 +94,19 @@ export default function PlayPage() {
     mass: 1,
     friction: 0.2,
     restitution: 0.0,
-    linearDamping: 0.9,
-    angularDamping: 1.0,
   },
   scene
 );
+
+const physicsBody: any =
+  player.physicsImpostor.physicsBody;
+
+physicsBody.linearDamping = 0.9;
+physicsBody.angularDamping = 1.0;
+
+physicsBody.fixedRotation = true;
+
+physicsBody.updateMassProperties();
 
 const physicsBody: any =
   player.physicsImpostor.physicsBody;
