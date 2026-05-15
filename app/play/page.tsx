@@ -100,7 +100,8 @@ export default function PlayPage() {
   scene
 );
 
-const physicsBody = player.physicsImpostor.physicsBody;
+const physicsBody: any =
+  player.physicsImpostor.physicsBody;
 
 physicsBody.fixedRotation = true;
 
