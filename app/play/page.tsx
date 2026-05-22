@@ -22,7 +22,9 @@ import { CannonJSPlugin } from "@babylonjs/core/Physics/Plugins/cannonJSPlugin";
 import * as CANNON from "cannon-es";
 
 export default function PlayPage() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(
+    null
+  );
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -33,7 +35,12 @@ export default function PlayPage() {
 
     const scene = new Scene(engine);
 
-    scene.clearColor = new Color4(0.08, 0.08, 0.12, 1);
+    scene.clearColor = new Color4(
+      0.08,
+      0.08,
+      0.12,
+      1
+    );
 
     // PHYSICS
 
@@ -44,7 +51,7 @@ export default function PlayPage() {
     );
 
     scene.enablePhysics(
-      new Vector3(0, -9.81, 0),
+      new Vector3(0, -20, 0),
       physicsPlugin
     );
 
@@ -68,6 +75,8 @@ export default function PlayPage() {
       },
       scene
     );
+
+    ground.isPickable = true;
 
     const groundMat = new StandardMaterial(
       "groundMat",
@@ -110,6 +119,8 @@ export default function PlayPage() {
 
       block.position = new Vector3(x, y, z);
 
+      block.isPickable = true;
+
       const blockMat = new StandardMaterial(
         `blockMat-${Math.random()}`,
         scene
@@ -145,27 +156,31 @@ export default function PlayPage() {
       );
     }
 
-    // PLAYER
+    // PLAYER HITBOX
 
-    const player = MeshBuilder.CreateSphere(
+    const player = MeshBuilder.CreateBox(
       "player",
       {
-        diameter: 1,
+        width: 1,
+        depth: 1,
+        height: 2,
       },
       scene
     );
 
-    player.position = new Vector3(0, 3, 0);
+    player.position = new Vector3(0, 4, 0);
 
     player.isVisible = false;
 
+    player.isPickable = false;
+
     player.physicsImpostor = new PhysicsImpostor(
       player,
-      PhysicsImpostor.SphereImpostor,
+      PhysicsImpostor.BoxImpostor,
       {
         mass: 1,
         friction: 0.2,
-        restitution: 0.0,
+        restitution: 0,
       },
       scene
     );
@@ -173,29 +188,193 @@ export default function PlayPage() {
     const physicsBody: any =
       player.physicsImpostor.physicsBody;
 
-    physicsBody.linearDamping = 0.9;
-
-    physicsBody.angularDamping = 1.0;
-
     physicsBody.fixedRotation = true;
 
     physicsBody.updateMassProperties();
+
+    // MATERIALS
+
+    const skinMat = new StandardMaterial(
+      "skinMat",
+      scene
+    );
+
+    skinMat.diffuseColor = new Color3(1, 1, 1);
+
+    const torsoMat = new StandardMaterial(
+      "torsoMat",
+      scene
+    );
+
+    torsoMat.diffuseColor = new Color3(
+      0.9,
+      0.1,
+      0.1
+    );
+
+    const pantsMat = new StandardMaterial(
+      "pantsMat",
+      scene
+    );
+
+    pantsMat.diffuseColor = new Color3(
+      0.1,
+      0.1,
+      0.1
+    );
+
+    // AVATAR ROOT
+
+    const avatarRoot = MeshBuilder.CreateBox(
+      "avatarRoot",
+      {
+        size: 0.01,
+      },
+      scene
+    );
+
+    avatarRoot.isVisible = false;
+
+    // HEAD
+
+    const head = MeshBuilder.CreateBox(
+      "head",
+      {
+        size: 0.8,
+      },
+      scene
+    );
+
+    head.parent = avatarRoot;
+
+    head.position.y = 1.9;
+
+    head.material = skinMat;
+
+    // TORSO
+
+    const torso = MeshBuilder.CreateBox(
+      "torso",
+      {
+        width: 1,
+        height: 1,
+        depth: 0.6,
+      },
+      scene
+    );
+
+    torso.parent = avatarRoot;
+
+    torso.position.y = 0.9;
+
+    torso.material = torsoMat;
+
+    // LEFT ARM
+
+    const leftArm = MeshBuilder.CreateBox(
+      "leftArm",
+      {
+        width: 0.35,
+        height: 1,
+        depth: 0.35,
+      },
+      scene
+    );
+
+    leftArm.parent = avatarRoot;
+
+    leftArm.position = new Vector3(
+      -0.7,
+      0.9,
+      0
+    );
+
+    leftArm.material = skinMat;
+
+    // RIGHT ARM
+
+    const rightArm = MeshBuilder.CreateBox(
+      "rightArm",
+      {
+        width: 0.35,
+        height: 1,
+        depth: 0.35,
+      },
+      scene
+    );
+
+    rightArm.parent = avatarRoot;
+
+    rightArm.position = new Vector3(
+      0.7,
+      0.9,
+      0
+    );
+
+    rightArm.material = skinMat;
+
+    // LEFT LEG
+
+    const leftLeg = MeshBuilder.CreateBox(
+      "leftLeg",
+      {
+        width: 0.4,
+        height: 1,
+        depth: 0.4,
+      },
+      scene
+    );
+
+    leftLeg.parent = avatarRoot;
+
+    leftLeg.position = new Vector3(
+      -0.25,
+      -0.2,
+      0
+    );
+
+    leftLeg.material = pantsMat;
+
+    // RIGHT LEG
+
+    const rightLeg = MeshBuilder.CreateBox(
+      "rightLeg",
+      {
+        width: 0.4,
+        height: 1,
+        depth: 0.4,
+      },
+      scene
+    );
+
+    rightLeg.parent = avatarRoot;
+
+    rightLeg.position = new Vector3(
+      0.25,
+      -0.2,
+      0
+    );
+
+    rightLeg.material = pantsMat;
 
     // CAMERA
 
     const camera = new FreeCamera(
       "camera",
-      new Vector3(0, 0.65, 0),
+      new Vector3(0, 2, -6),
       scene
     );
 
-    camera.parent = player;
-
-    camera.minZ = 0.05;
-
-    camera.fov = Math.PI / 3;
-
     scene.activeCamera = camera;
+
+    let cameraDistance = 6;
+
+    const minZoom = 0.1;
+
+    const maxZoom = 12;
+
+    let currentCameraPos =
+      camera.position.clone();
 
     // CONTROLS
 
@@ -208,23 +387,13 @@ export default function PlayPage() {
     const keys = new Set<string>();
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (
-        ["KeyW", "KeyA", "KeyS", "KeyD", "Space"].includes(
-          e.code
-        )
-      ) {
-        e.preventDefault();
-      }
-
       keys.add(e.code);
 
       if (e.code === "Space" && canJump) {
         player.physicsImpostor?.applyImpulse(
-          new Vector3(0, 6, 0),
+          new Vector3(0, 7, 0),
           player.getAbsolutePosition()
         );
-
-        canJump = false;
       }
     };
 
@@ -238,9 +407,9 @@ export default function PlayPage() {
 
       yaw += e.movementX * 0.0025;
 
-      pitch += e.movementY * 0.0025;
+      pitch += e.movementY * 0.0018;
 
-      const limit = 1.45;
+      const limit = 1.4;
 
       if (pitch > limit) pitch = limit;
 
@@ -249,6 +418,16 @@ export default function PlayPage() {
 
     const onCanvasClick = () => {
       canvas.requestPointerLock();
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      cameraDistance += e.deltaY * 0.01;
+
+      if (cameraDistance < minZoom)
+        cameraDistance = minZoom;
+
+      if (cameraDistance > maxZoom)
+        cameraDistance = maxZoom;
     };
 
     canvas.addEventListener(
@@ -271,32 +450,24 @@ export default function PlayPage() {
       onKeyUp
     );
 
-    const handleResize = () => {
-      engine.resize();
-    };
-
     window.addEventListener(
-      "resize",
-      handleResize
+      "wheel",
+      onWheel
     );
 
-    // GAME LOOP
+    // LOOP
 
     scene.onBeforeRenderObservable.add(() => {
-      camera.rotation.x = pitch;
-
-      camera.rotation.y = yaw;
-
       const forward = new Vector3(
-        Math.sin(camera.rotation.y),
+        Math.sin(yaw),
         0,
-        Math.cos(camera.rotation.y)
+        Math.cos(yaw)
       );
 
       const right = new Vector3(
-        Math.cos(camera.rotation.y),
+        Math.cos(yaw),
         0,
-        -Math.sin(camera.rotation.y)
+        -Math.sin(yaw)
       );
 
       let moveX = 0;
@@ -324,7 +495,7 @@ export default function PlayPage() {
 
       const yVel = currentVel?.y ?? 0;
 
-      const speed = 6;
+      const speed = 12;
 
       player.physicsImpostor?.setLinearVelocity(
         new Vector3(
@@ -334,60 +505,136 @@ export default function PlayPage() {
         )
       );
 
+      // FOLLOW PLAYER
+
+      avatarRoot.position = player.position.clone();
+
+      // ROTATE PLAYER
+
+      if (moveDir.lengthSquared() > 0.01) {
+        avatarRoot.rotation.y = Math.atan2(
+          moveDir.x,
+          moveDir.z
+        );
+
+        const walk =
+          performance.now() * 0.01;
+
+        leftLeg.rotation.x =
+          Math.sin(walk) * 0.7;
+
+        rightLeg.rotation.x =
+          -Math.sin(walk) * 0.7;
+
+        leftArm.rotation.x =
+          -Math.sin(walk) * 0.7;
+
+        rightArm.rotation.x =
+          Math.sin(walk) * 0.7;
+      }
+
+      // CAMERA TARGET
+
+      const target = player.position.add(
+        new Vector3(0, 1.4, 0)
+      );
+
+      let desiredPosition: Vector3;
+
+      // FIRST PERSON
+
+      if (cameraDistance <= 0.3) {
+        desiredPosition = player.position.add(
+          new Vector3(0, 1.5, 0)
+        );
+
+        avatarRoot.setEnabled(false);
+      } else {
+        avatarRoot.setEnabled(true);
+
+        const offset = new Vector3(
+          Math.sin(yaw) * cameraDistance,
+          -Math.sin(pitch) *
+            cameraDistance *
+            0.8,
+          Math.cos(yaw) * cameraDistance
+        );
+
+        desiredPosition =
+          target.subtract(offset);
+
+        // CAMERA COLLISION
+
+        const rayDirection =
+          desiredPosition.subtract(target);
+
+        rayDirection.normalize();
+
+        const ray = new Ray(
+          target,
+          rayDirection,
+          cameraDistance
+        );
+
+        const hitInfo = scene.pickWithRay(
+          ray,
+          (mesh) =>
+            mesh.isPickable &&
+            mesh !== player
+        );
+
+        if (
+          hitInfo?.hit &&
+          hitInfo.pickedPoint
+        ) {
+          desiredPosition =
+            hitInfo.pickedPoint.add(
+              rayDirection.scale(-0.3)
+            );
+        }
+      }
+
+      currentCameraPos = Vector3.Lerp(
+        currentCameraPos,
+        desiredPosition,
+        0.15
+      );
+
+      camera.position = currentCameraPos;
+
+      const lookTarget = target.add(
+        new Vector3(
+          Math.sin(yaw),
+          -Math.sin(pitch),
+          Math.cos(yaw)
+        )
+      );
+
+      camera.setTarget(lookTarget);
+
       // GROUND CHECK
 
-      const ray = new Ray(
+      const groundRay = new Ray(
         player.position.add(
-          new Vector3(0, -0.55, 0)
+          new Vector3(0, -1.05, 0)
         ),
         new Vector3(0, -1, 0),
-        0.3
+        0.2
       );
 
       const hit = scene.pickWithRay(
-        ray,
+        groundRay,
         (mesh) => mesh !== player
       );
 
-      canJump = !!hit?.hit;
+      canJump = hit?.hit ?? false;
     });
-
-    // RENDER
 
     engine.runRenderLoop(() => {
       scene.render();
     });
 
-    // CLEANUP
-
     return () => {
-      canvas.removeEventListener(
-        "click",
-        onCanvasClick
-      );
-
-      document.removeEventListener(
-        "mousemove",
-        onMouseMove
-      );
-
-      window.removeEventListener(
-        "keydown",
-        onKeyDown
-      );
-
-      window.removeEventListener(
-        "keyup",
-        onKeyUp
-      );
-
-      window.removeEventListener(
-        "resize",
-        handleResize
-      );
-
-      scene.dispose();
-
       engine.dispose();
     };
   }, []);
@@ -399,7 +646,6 @@ export default function PlayPage() {
         width: "100vw",
         height: "100vh",
         display: "block",
-        cursor: "pointer",
       }}
     />
   );
